@@ -1,10 +1,11 @@
 "use client";
 
+import { ImageItem } from "@/hooks/useImageUploader";
 import ImageUploaderGrid from "../../../../components/image-uploader-grid";
 import { useState } from "react";
 
 export default function EditImageSelector({ defaultImages }: { defaultImages: string[] }) {
-  const [newImages, setNewImages] = useState<File[]>([]);
+  const [newImages, setNewImages] = useState<ImageItem[]>([]);
 
   return (
     <div className="space-y-4">
@@ -30,7 +31,7 @@ export default function EditImageSelector({ defaultImages }: { defaultImages: st
             key={i}
             type="hidden"
             name="new_images"
-            value={file.name}
+            value={file instanceof File ? file.name : file}
           />
         ))}
       </div>

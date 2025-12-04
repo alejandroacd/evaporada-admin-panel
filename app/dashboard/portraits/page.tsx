@@ -2,8 +2,7 @@ import { supabaseServer } from "@/lib/server";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { Trash2, Upload, X } from "lucide-react";
-import { deletePortrait, uploadPortrait } from "./actions";
-import { DeleteButton } from "./components/DeleteZone";
+import { deletePortrait } from "./actions";
 import { UploadZone } from "./components/UploadZone";
 import { Suspense } from "react";
 

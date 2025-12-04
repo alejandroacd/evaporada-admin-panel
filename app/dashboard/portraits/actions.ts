@@ -3,7 +3,7 @@
 import { supabaseServer } from "@/lib/server";
 import { revalidatePath } from "next/cache";
 import { uploadToCloudinary } from "@/lib/cloudinary"; // Make sure this path is correct
-
+import { cloudinary } from "@/lib/cloudinary";
 export async function uploadPortrait(formData: FormData) {
   const supabase = await supabaseServer();
   
@@ -69,19 +69,23 @@ export async function deletePortrait(formData: FormData) {
   const imageUrl = formData.get("image_url") as string;
 
   try {
-    // For Cloudinary, you might want to also delete the image from Cloudinary
-    // But since you're using the free tier, you might just delete from DB
-    // If you want to delete from Cloudinary too, you'll need:
-    
-    // 1. Extract public_id from URL
-    // const urlParts = imageUrl.split('/');
-    // const fileName = urlParts[urlParts.length - 1];
-    // const publicId = fileName.split('.')[0];
-    
-    // 2. Delete from Cloudinary
-    // await cloudinary.uploader.destroy(publicId);
+    // Extraer public_id de Cloudinary si quieres borrar de allí también
+    if (imageUrl.includes('cloudinary')) {
+      try {
+        const urlParts = imageUrl.split('/');
+        const fileName = urlParts[urlParts.length - 1];
+        const publicId = fileName.split('.')[0];
+        const folder = 'portraits/';
+        
+        // Borrar de Cloudinary
+        await cloudinary.uploader.destroy(`${folder}${publicId}`);
+      } catch (cloudinaryError) {
+        console.warn("Could not delete from Cloudinary:", cloudinaryError);
+        // Continuar aunque falle Cloudinary, al menos borrar de DB
+      }
+    }
 
-    // For now, just delete from database
+    // Borrar de la base de datos
     const { error } = await supabase
       .from("portraits")
       .delete()
@@ -90,13 +94,15 @@ export async function deletePortrait(formData: FormData) {
     if (error) throw error;
 
     revalidatePath("/dashboard/portraits");
-    return { success: true };
+    
+    // No retornes nada, solo revalida
+    // Si necesitas notificar éxito/error, usa throw o maneja en el cliente
   } catch (error) {
     console.error("Delete error:", error);
-    throw error;
+    // Lanza el error para que el cliente lo capture
+    throw new Error("Failed to delete portrait");
   }
 }
-
 export async function reorderPortraits(orderedIds: string[]) {
   const supabase = await supabaseServer();
   
