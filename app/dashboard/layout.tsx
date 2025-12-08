@@ -5,6 +5,7 @@ import { LayoutDashboard, Image, FileText, User } from "lucide-react";
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const routes = [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { href: "/dashboard/covers", label: "Covers", icon: Image },
     { href: "/dashboard/publications", label: "Publications", icon: FileText },
     { href: "/dashboard/displays", label: "Displays", icon: Image },
     { href: "/dashboard/portraits", label: "Portraits", icon: Image },

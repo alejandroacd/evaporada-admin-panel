@@ -119,3 +119,79 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* En tu archivo globals.css o un archivo CSS del componente */
+.tiptap-renderer {
+  line-height: 1.6;
+  color: #374151; /* text-gray-700 */
+}
+
+.tiptap-renderer p {
+  margin-bottom: 0.75rem;
+}
+
+.tiptap-renderer h1, 
+.tiptap-renderer h2, 
+.tiptap-renderer h3 {
+  font-weight: bold;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.tiptap-renderer h1 {
+  font-size: 1.875rem; /* text-3xl */
+}
+
+.tiptap-renderer h2 {
+  font-size: 1.5rem; /* text-2xl */
+}
+
+.tiptap-renderer h3 {
+  font-size: 1.25rem; /* text-xl */
+}
+
+.tiptap-renderer strong, 
+.tiptap-renderer b {
+  font-weight: bold;
+}
+
+.tiptap-renderer em, 
+.tiptap-renderer i {
+  font-style: italic;
+}
+
+.tiptap-renderer s, 
+.tiptap-renderer strike {
+  text-decoration: line-through;
+}
+
+.tiptap-renderer ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.tiptap-renderer ol {
+  list-style-type: decimal;
+  padding-left: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.tiptap-renderer a {
+  color: #2563eb; /* text-blue-600 */
+  text-decoration: underline;
+  transition: color 0.2s;
+}
+
+.tiptap-renderer a:hover {
+  color: #1d4ed8; /* text-blue-700 */
+  text-decoration: none;
+}
+
+.tiptap-renderer code {
+  background-color: #f3f4f6; /* bg-gray-100 */
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  font-family: monospace;
+  font-size: 0.875rem;
+}

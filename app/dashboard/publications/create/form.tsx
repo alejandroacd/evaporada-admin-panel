@@ -3,23 +3,24 @@
 import { useTransition, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { createPublication } from "../actions";
 import ImageUploaderGrid from "../../../../components/image-uploader-grid";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { ImageItem } from "@/hooks/useImageUploader";
 import BackButton from "@/components/ui/go-back";
+import { RichTextEditor } from "../components/RichTextEditor";
 
 export function CreatePublicationForm() {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [images, setImages] = useState<ImageItem[]>([]);
+  const [description, setDescription] = useState<string>("");
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    // Client-side validation
+    // Validación del lado del cliente
     if (images.length === 0) {
       toast.error("Please select at least one image");
       return;
@@ -39,7 +40,17 @@ export function CreatePublicationForm() {
     const form = e.currentTarget;
     const formData = new FormData(form);
 
-    // Only append files that are File objects (not strings)
+    // Establecer el título
+    formData.set("title", title);
+
+    // Establecer la descripción (puede estar vacía o contener HTML)
+    if (description && description.trim() !== "" && description.trim() !== "<p></p>") {
+      formData.set("description", description);
+    } else {
+      formData.set("description", "");
+    }
+
+    // Agregar solo archivos que sean objetos File (no strings)
     images.forEach((image) => {
       if (image instanceof File) {
         formData.append("images", image);
@@ -82,11 +93,16 @@ export function CreatePublicationForm() {
 
       <div className="space-y-2">
         <label className="block font-medium">Description</label>
-        <Textarea 
-          name="description" 
-          rows={5} 
+        <RichTextEditor 
+          value={description}
+          onChange={setDescription}
           placeholder="Enter publication description (optional)"
         />
+        {/* Campo oculto para enviar la descripción */}
+        <input type="hidden" name="description" value={description} />
+        <p className="text-sm text-gray-500">
+          Supports <strong>bold</strong>, <em>italic</em>, <s>strikethrough</s>, links, and lists
+        </p>
       </div>
 
       <div className="space-y-2">
@@ -101,25 +117,25 @@ export function CreatePublicationForm() {
             }
           }}
         />
+        <p className="text-sm text-gray-500">Supported formats: JPG, PNG, WebP, GIF - Max 5MB each</p>
       </div>
 
       <div className="flex gap-3 pt-4 w-full justify-end">
-        
         <Button 
           type="button" 
           variant="outline"
           onClick={() => router.back()}
+          disabled={pending}
         >
           Cancel
         </Button>
-     <Button 
+        <Button 
           type="submit" 
           disabled={pending || images.length === 0}
           className="min-w-[120px]"
         >
           {pending ? "Saving..." : "Save"}
         </Button>
-     
       </div>
     </form>
   );

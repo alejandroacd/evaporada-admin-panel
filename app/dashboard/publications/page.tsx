@@ -2,9 +2,11 @@ import { supabaseServer } from "@/lib/server";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from "next/image";
-import {  Pencil } from "lucide-react";
+import { Pencil } from "lucide-react";
 import { deletePublication } from "./actions";
 import { DeleteButton } from "./components/DeleteButton";
+import TipTapRenderer from "@/components/tip-tap-renderer"; // Asegúrate de que esta ruta sea correcta
+
 export default async function PublicationsPage() {
   const supabase = await supabaseServer();
 
@@ -53,9 +55,13 @@ export default async function PublicationsPage() {
             <div className="p-4">
               <h2 className="text-xl font-semibold">{pub.title}</h2>
 
-              <p className="text-gray-600 mt-2 line-clamp-3">
-                {pub.description}
-              </p>
+              <div className="text-gray-600 mt-2 line-clamp-3 min-h-[72px]">
+                <TipTapRenderer 
+                  html={pub.description || ""} 
+                  maxLength={150}
+                  className="text-sm"
+                />
+              </div>
 
               <div className="mt-4 gap-2 flex justify-end items-center">
                 {/* EDIT */}
@@ -68,7 +74,7 @@ export default async function PublicationsPage() {
                 {/* DELETE */}
                 <form action={deletePublication}>
                   <input type="hidden" name="id" value={pub.id} />
-                <DeleteButton />
+                  <DeleteButton />
                 </form>
               </div>
             </div>

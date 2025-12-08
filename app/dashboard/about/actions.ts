@@ -10,6 +10,51 @@ interface AboutData {
   content: string;
 }
 
+// NUEVA FUNCIÓN: Obtener el último registro de About
+export async function getLatestAbout() {
+  const supabase = await supabaseServer();
+
+  try {
+    // Verificar autenticación
+    const { data: userData, error: authError } = await supabase.auth.getUser();
+    if (authError || !userData.user) {
+      return { success: false, error: "Not authenticated", data: null };
+    }
+
+    // Obtener el último registro por updated_at
+    // IMPORTANTE: Cambia "about" por "public_about" si ese es el nombre real de tu tabla
+    const { data, error } = await supabase
+      .from("about") // O "about" si ese es el nombre
+      .select("*")
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .single();
+
+    if (error) {
+      // Si la tabla está vacía, no es un error
+      if (error.code === "PGRST116") {
+        return { success: true, data: null, error: null };
+      }
+      console.error("Error fetching about data:", error);
+      return { success: false, error: error.message, data: null };
+    }
+
+    return { 
+      success: true, 
+      data: data,
+      error: null 
+    };
+  } catch (error: any) {
+    console.error("Unexpected error:", error);
+    return { 
+      success: false, 
+      error: error.message || "Failed to fetch about data", 
+      data: null 
+    };
+  }
+}
+
+// Funciones existentes (mantenemos las tuyas pero las adaptamos)
 export async function createAbout(data: AboutData) {
   const supabase = await supabaseServer();
 
@@ -30,8 +75,9 @@ export async function createAbout(data: AboutData) {
     }
 
     // Crear nuevo registro
+    // IMPORTANTE: Cambia "about" por "public_about" si ese es el nombre real
     const { data: result, error } = await supabase
-      .from("about")
+      .from("about") // O "about" si ese es el nombre
       .insert({
         title: data.title.trim(),
         content: data.content.trim(),
@@ -46,7 +92,7 @@ export async function createAbout(data: AboutData) {
     }
 
     revalidatePath("/dashboard/about");
-    revalidatePath("/about"); // Si tienes página pública en /about
+    revalidatePath("/about");
 
     return { 
       success: true, 
@@ -54,11 +100,11 @@ export async function createAbout(data: AboutData) {
       id: result.id
     };
 
-  } catch (error) {
+  } catch (error: any) {
     console.error("Unexpected error:", error);
     return { 
       success: false, 
-      error: error instanceof Error ? error.message : "Unknown error" 
+      error: error.message || "Unknown error" 
     };
   }
 }
@@ -87,8 +133,9 @@ export async function updateAbout(data: AboutData) {
     }
 
     // Actualizar registro existente
+    // IMPORTANTE: Cambia "about" por "public_about" si ese es el nombre real
     const { error } = await supabase
-      .from("about")
+      .from("about") // O "about" si ese es el nombre
       .update({
         title: data.title.trim(),
         content: data.content.trim(),
@@ -102,56 +149,18 @@ export async function updateAbout(data: AboutData) {
     }
 
     revalidatePath("/dashboard/about");
-    revalidatePath("/about"); // Si tienes página pública en /about
+    revalidatePath("/about");
 
     return { 
       success: true, 
       message: "About page updated successfully" 
     };
 
-  } catch (error) {
+  } catch (error: any) {
     console.error("Unexpected error:", error);
     return { 
       success: false, 
-      error: error instanceof Error ? error.message : "Unknown error" 
-    };
-  }
-}
-
-export async function deleteAbout() {
-  const supabase = await supabaseServer();
-
-  try {
-    // Verificar autenticación
-    const { data: userData, error: authError } = await supabase.auth.getUser();
-    if (authError || !userData.user) {
-      return { success: false, error: "Not authenticated" };
-    }
-
-    // Eliminar todos los registros (solo debería haber uno)
-    const { error } = await supabase
-      .from("about")
-      .delete()
-      .neq("id", ""); // Elimina todos
-
-    if (error) {
-      console.error("Delete error:", error);
-      return { success: false, error: error.message };
-    }
-
-    revalidatePath("/dashboard/about");
-    revalidatePath("/about");
-
-    return { 
-      success: true, 
-      message: "About page deleted successfully" 
-    };
-
-  } catch (error) {
-    console.error("Unexpected error:", error);
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : "Unknown error" 
+      error: error.message || "Unknown error" 
     };
   }
 }
