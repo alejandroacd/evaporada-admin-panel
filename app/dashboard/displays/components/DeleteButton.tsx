@@ -3,7 +3,7 @@
 import { useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Loader2, Trash } from "lucide-react";
-import { deleteDisplayAction } from "../actions";
+import { deleteDisplay} from "../actions";
 import { toast } from "sonner";
 
 export function DeleteButton() {
@@ -22,7 +22,7 @@ export function DeleteButton() {
         const formData = new FormData(form);
 
         startTransition(async () => {
-          const result = await deleteDisplayAction(formData);
+          const result = await deleteDisplay(formData);
 
           if (result.success) {
             toast.success("Display deleted");

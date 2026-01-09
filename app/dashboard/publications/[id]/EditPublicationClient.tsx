@@ -11,14 +11,7 @@ import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { ImageItem } from "@/hooks/useImageUploader";
 import { RichTextEditor } from "../components/RichTextEditor"; // Asegúrate de que esta ruta sea correcta
-
-interface Publication {
-  id: string;
-  title: string;
-  description: string;
-  images: string[];
-}
-
+import { Publication } from "@/types/index";
 export default function EditPublicationClient({ publication }: { publication: Publication }) {
   const [allImages, setAllImages] = useState<ImageItem[]>(publication.images || []);
   const [title, setTitle] = useState(publication.title);

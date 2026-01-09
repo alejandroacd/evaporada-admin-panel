@@ -6,6 +6,39 @@ import { v4 as uuid } from "uuid";
 import { redirect } from "next/navigation";
 import { uploadToCloudinary } from "@/lib/cloudinary";
 
+
+interface UpdateOrderItem {
+  id: number | string;
+  sort_order: number;
+}
+
+export async function updatePublicationOrder(items: UpdateOrderItem[]) {
+  try {
+    const supabase = await supabaseServer();
+    
+    // Actualizar todos los items en una transacción
+    const updates = items.map(async (item) => {
+      const { error } = await supabase
+        .from('publications')
+        .update({ 
+          order: item.sort_order,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', item.id);
+
+      if (error) throw error;
+    });
+
+    await Promise.all(updates);
+    
+    return { success: true };
+  } catch (error) {
+    console.error('Error updating order:', error);
+    return { success: false, error: 'Failed to update order' };
+  }
+}
+
+
 export async function deletePublication(formData: FormData) {
   const id = formData.get("id") as string;
 

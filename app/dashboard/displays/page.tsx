@@ -1,16 +1,16 @@
 import { supabaseServer } from "@/lib/server";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import Image from "next/image";
-import { Pencil } from "lucide-react";
-import { DeleteButton } from "@/app/dashboard/displays/components/DeleteButton";
+import { DragAndDropDisplays } from "./components/DragAndDropDisplays";
 
 export default async function DisplaysPage() {
   const supabase = await supabaseServer();
 
+  // Ordenar por 'order' si existe, sino por created_at
   const { data: displays } = await supabase
     .from("displays")
     .select("*")
+    .order("order", { ascending: true, nullsFirst: false })
     .order("created_at", { ascending: false });
 
   return (
@@ -27,49 +27,8 @@ export default async function DisplaysPage() {
         <p className="text-gray-500 text-lg">No displays yet.</p>
       )}
 
-      <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-        {displays?.map((disp) => (
-          <div
-            key={disp.id}
-            className="rounded-xl border bg-white shadow-sm overflow-hidden hover:shadow-lg transition"
-          >
-            {/* IMAGE */}
-            {disp.images?.length > 0 ? (
-              <div className="relative w-full h-48 bg-gray-100">
-                <Image
-                  src={disp.images[0]}
-                  alt={disp.title}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-            ) : (
-              <div className="w-full h-48 bg-gray-200 flex items-center justify-center text-gray-500">
-                No image
-              </div>
-            )}
-
-            {/* CONTENT */}
-            <div className="p-4">
-              <h2 className="text-xl font-semibold">{disp.title}</h2>
-              <div className="mt-4 gap-2 flex justify-end items-center">
-                {/* EDIT */}
-                <Link href={`/dashboard/displays/${disp.id}`}>
-                  <Button size="sm" variant="outline">
-                    <Pencil />
-                  </Button>
-                </Link>
-
-                {/* DELETE */}
-                <form >
-                  <input type="hidden" name="id" value={disp.id} />
-                  <DeleteButton />
-                </form>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
+      {/* Reemplazamos la grid estática por el componente drag and drop */}
+      <DragAndDropDisplays initialDisplays={displays || []} />
     </div>
   );
 }

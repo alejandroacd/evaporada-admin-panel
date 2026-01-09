@@ -4,6 +4,49 @@ import { supabaseServer } from "@/lib/server";
 import { revalidatePath } from "next/cache";
 import { uploadToCloudinary } from "@/lib/cloudinary"; // Make sure this path is correct
 import { cloudinary } from "@/lib/cloudinary";
+
+export interface UpdatePortraitOrderItem {
+  id: number | string;
+  order: number;
+}
+
+export async function updatePortraitOrder(items: UpdatePortraitOrderItem[]) {
+  try {
+    const supabase = await supabaseServer();
+    
+    const updates = items.map(async (item) => {
+      let id: number;
+      
+      if (typeof item.id === 'string') {
+        id = parseInt(item.id, 10);
+        if (isNaN(id)) {
+          throw new Error(`Invalid ID: ${item.id}`);
+        }
+      } else {
+        id = item.id;
+      }
+      
+      const { error } = await supabase
+        .from('portraits')
+        .update({ 
+          order: item.order,
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+    });
+
+    await Promise.all(updates);
+    
+    revalidatePath("/dashboard/portraits");
+    
+    return { success: true };
+  } catch (error) {
+    console.error('Error updating portrait order:', error);
+    return { success: false, error: 'Failed to update portrait order' };
+  }
+}
+
 export async function uploadPortrait(formData: FormData) {
   const supabase = await supabaseServer();
   

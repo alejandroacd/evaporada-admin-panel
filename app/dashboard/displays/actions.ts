@@ -5,6 +5,49 @@ import { uploadToCloudinary } from "@/lib/cloudinary";
 import { cloudinary } from "@/lib/cloudinary";
 import { revalidatePath } from "next/cache";
 
+
+export interface UpdateDisplayOrderItem {
+  id: number | string;
+  order: number; // Tu columna se llama 'order' en lugar de 'sort_order'
+}
+
+export async function updateDisplayOrder(items: UpdateDisplayOrderItem[]) {
+  try {
+    const supabase = await supabaseServer();
+    
+    // Actualizar todos los items en una transacción
+    const updates = items.map(async (item) => {
+      let id: number;
+      
+      // Convertir id a número si es string
+      if (typeof item.id === 'string') {
+        id = parseInt(item.id, 10);
+        if (isNaN(id)) {
+          throw new Error(`Invalid ID: ${item.id}`);
+        }
+      } else {
+        id = item.id;
+      }
+      
+      const { error } = await supabase
+        .from('displays')
+        .update({ 
+          order: item.order, // Usa 'order' que es el nombre de tu columna
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+    });
+
+    await Promise.all(updates);
+    
+    return { success: true };
+  } catch (error) {
+    console.error('Error updating display order:', error);
+    return { success: false, error: 'Failed to update display order' };
+  }
+}
+
 // Constants for validation
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_FILE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif"];
@@ -404,7 +447,7 @@ export async function updateDisplayAction(formData: FormData): Promise<{
   }
 }
 
-export async function deleteDisplayAction(formData: FormData): Promise<{
+export async function deleteDisplay(formData: FormData): Promise<{
   success: boolean;
   message: string;
 }> {
