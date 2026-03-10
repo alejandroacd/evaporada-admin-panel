@@ -4,6 +4,7 @@
 import { useTransition, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea"; // Add this import
 import ImageUploaderGrid from "@/components/image-uploader-grid";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -38,6 +39,13 @@ export default function CreateDisplayForm() {
       return;
     }
 
+    // Description validation (optional)
+    const description = (e.currentTarget.elements.namedItem("description") as HTMLTextAreaElement)?.value?.trim();
+    if (description && description.length > 1000) {
+      toast.error("Description must be less than 1000 characters");
+      return;
+    }
+
     const form = e.currentTarget;
     const formData = new FormData(form);
 
@@ -59,14 +67,29 @@ export default function CreateDisplayForm() {
       </div>
 
       <div className="space-y-2">
-        <label className="block font-medium">Title *</label>
+        <label htmlFor="title" className="block font-medium">Title *</label>
         <Input 
+          id="title"
           name="title" 
           required 
           placeholder="Enter display title"
           maxLength={200}
         />
         <p className="text-sm text-gray-500">Max 200 characters</p>
+      </div>
+
+      {/* New Description Field */}
+      <div className="space-y-2">
+        <label htmlFor="description" className="block font-medium">Description</label>
+        <Textarea
+          id="description"
+          name="description"
+          placeholder="Enter display description (optional)"
+          maxLength={1000}
+          rows={4}
+          className="resize-y"
+        />
+        <p className="text-sm text-gray-500">Max 1000 characters • Optional</p>
       </div>
 
       <div className="space-y-2">

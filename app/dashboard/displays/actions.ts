@@ -132,6 +132,7 @@ export async function createDisplayAction(formData: FormData): Promise<{
 
     // Extract and validate form data
     const title = formData.get("title") as string;
+    const description = formData.get("description") as string; // Add description
     const files = formData.getAll("images") as File[];
 
     // Validate title
@@ -141,6 +142,11 @@ export async function createDisplayAction(formData: FormData): Promise<{
 
     if (title.length > 200) {
       return { success: false, message: "Title must be less than 200 characters" };
+    }
+
+    // Validate description (optional)
+    if (description && description.length > 1000) {
+      return { success: false, message: "Description must be less than 1000 characters" };
     }
 
     // Validate files
@@ -206,15 +212,23 @@ export async function createDisplayAction(formData: FormData): Promise<{
       .filter((result): result is PromiseFulfilledResult<string> => result.status === 'fulfilled')
       .map(result => result.value);
 
+    // Prepare database insert object
+    const insertData: any = {
+      title: title.trim(),
+      images: urls,
+      user_id: user.id,
+      created_at: new Date().toISOString(),
+    };
+
+    // Add description only if it exists
+    if (description?.trim()) {
+      insertData.description = description.trim();
+    }
+
     // Insert into database
     const { data: displayData, error: dbError } = await supabase
       .from("displays")
-      .insert({
-        title: title.trim(),
-        images: urls,
-        user_id: user.id,
-        created_at: new Date().toISOString(),
-      })
+      .insert(insertData)
       .select("id")
       .single();
 
@@ -292,6 +306,7 @@ export async function updateDisplayAction(formData: FormData): Promise<{
     // Extract form data
     const id = formData.get("id") as string;
     const title = formData.get("title") as string;
+    const description = formData.get("description") as string; // Add description
     const prevImagesRaw = formData.get("prevImages") as string;
     const newFiles = formData.getAll("images") as File[];
 
@@ -306,6 +321,11 @@ export async function updateDisplayAction(formData: FormData): Promise<{
 
     if (title.length > 200) {
       return { success: false, message: "Title must be less than 200 characters" };
+    }
+
+    // Validate description length (optional)
+    if (description && description.length > 1000) {
+      return { success: false, message: "Description must be less than 1000 characters" };
     }
 
     // Parse previous images
@@ -406,13 +426,22 @@ export async function updateDisplayAction(formData: FormData): Promise<{
     // Combine all images
     const allUrls = [...prevImages, ...newUrls];
 
+    // Prepare update data
+    const updateData: any = {
+      title: title.trim(),
+      images: allUrls,
+    };
+
+    // Add description if provided (including empty string to clear it)
+    if (description !== undefined) {
+      // If description is empty string or just whitespace, set to null to clear it
+      updateData.description = description?.trim() || null;
+    }
+
     // Update database
     const { error: updateError } = await supabase
       .from("displays")
-      .update({
-        title: title.trim(),
-        images: allUrls,
-      })
+      .update(updateData)
       .eq("id", id)
       .eq("user_id", user.id);
 
@@ -429,10 +458,13 @@ export async function updateDisplayAction(formData: FormData): Promise<{
 
     // Cleanup old images that were removed (if any)
     const removedImages = existingDisplay.images.filter((img: string) => !prevImages.includes(img));
-    await cleanupCloudinaryImages(removedImages);
+    if (removedImages.length > 0) {
+      await cleanupCloudinaryImages(removedImages);
+    }
 
     // Revalidate the displays page
     revalidatePath("/dashboard/displays");
+    revalidatePath(`/dashboard/displays/${id}`); // Also revalidate the individual display page if it exists
 
     return {
       success: true,

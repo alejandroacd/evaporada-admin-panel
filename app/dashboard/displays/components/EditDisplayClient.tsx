@@ -3,6 +3,7 @@
 
 import { useState, useTransition, useEffect } from "react";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea"; // Add this import
 import { Button } from "@/components/ui/button";
 import { updateDisplayAction } from "../actions";
 import { toast } from "sonner";
@@ -15,12 +16,14 @@ import { useRouter } from "next/navigation";
 interface DisplayData {
   id: string;
   title: string;
+  description?: string | null; // Add optional description
   images: string[];
 }
 
 export default function EditDisplay({ display }: { display: DisplayData }) {
   const router = useRouter();
   const [title, setTitle] = useState(display.title);
+  const [description, setDescription] = useState(display.description || ""); // Add description state
   const [images, setImages] = useState<ImageItem[]>(display.images || []);
   const [isPending, startTransition] = useTransition();
 
@@ -54,9 +57,16 @@ export default function EditDisplay({ display }: { display: DisplayData }) {
       return;
     }
 
+    // Description validation (optional)
+    if (description && description.length > 1000) {
+      toast.error("Description must be less than 1000 characters");
+      return;
+    }
+
     const formData = new FormData();
     formData.append("id", display.id);
     formData.append("title", title.trim());
+    formData.append("description", description?.trim() || ""); // Add description to form data
     
     // Separate existing URLs from new Files
     const existingImages = images.filter(img => typeof img === "string");
@@ -90,6 +100,7 @@ export default function EditDisplay({ display }: { display: DisplayData }) {
 
   const handleReset = () => {
     setTitle(display.title);
+    setDescription(display.description || ""); // Reset description
     setImages(display.images || []);
   };
 
@@ -108,12 +119,13 @@ export default function EditDisplay({ display }: { display: DisplayData }) {
       <div>
         <BackButton />
         <h1 className="font-bold text-3xl mt-4">Edit Display</h1>
-        <p className="text-gray-500 mt-1">Update your display images and title</p>
+        <p className="text-gray-500 mt-1">Update your display information and images</p>
       </div>
 
       <div className="space-y-2">
-        <label className="block font-medium">Title *</label>
+        <label htmlFor="title" className="block font-medium">Title *</label>
         <Input 
+          id="title"
           value={title} 
           onChange={(e) => setTitle(e.target.value)}
           required 
@@ -121,6 +133,23 @@ export default function EditDisplay({ display }: { display: DisplayData }) {
           maxLength={200}
         />
         <p className="text-sm text-gray-500">Max 200 characters</p>
+      </div>
+
+      {/* Description Field */}
+      <div className="space-y-2">
+        <label htmlFor="description" className="block font-medium">Description</label>
+        <Textarea
+          id="description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder="Enter display description (optional)"
+          maxLength={1000}
+          rows={4}
+          className="resize-y"
+        />
+        <p className="text-sm text-gray-500">
+          Max 1000 characters • {description.length}/1000
+        </p>
       </div>
 
       <div className="space-y-2">
